@@ -1,0 +1,16 @@
+package view
+
+import (
+    "github.com/Praveenkusuluri08/view/components"
+)
+
+
+templ Base(body templ.Component,isLoggedIn bool){
+    <!DOCTYPE html>
+    <html lang="en">
+        @components.Header(isLoggedIn)
+        <body class="">
+            @body
+        </body>
+    </html>
+}
