@@ -7,9 +7,5 @@ import (
 
 func UserRoutes(router *gin.Engine) {
 	router.GET("/login", userhandlers.HandleLoginPage)
-	router.GET("/test", func(c *gin.Context) {
-		c.JSON(200, gin.H{
-			"message": "Welcome to the API",
-		})
-	})
+	router.POST("/login", userhandlers.HandleLoginApi())
 }

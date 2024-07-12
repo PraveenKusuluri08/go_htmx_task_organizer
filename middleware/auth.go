@@ -2,70 +2,46 @@ package middleware
 
 import (
 	"fmt"
-	"log"
 	"net/http"
-	"os"
-	"time"
 
-	"github.com/dgrijalva/jwt-go"
+	"github.com/Praveenkusuluri08/utils"
+	"github.com/Praveenkusuluri08/view"
 	"github.com/gin-gonic/gin"
 )
-
-var Secret_Key = os.Getenv("SECRET_KEY")
-
-type SignInDetails struct {
-	Email    string
-	Uid      string
-	Username string
-	jwt.StandardClaims
-}
-
-func validateToken(token string) (claims *SignInDetails, msg string) {
-	var message string
-	tokenString, err := jwt.ParseWithClaims(
-		token,
-		&SignInDetails{},
-		func(token *jwt.Token) (interface{}, error) {
-			return []byte(Secret_Key), nil
-		},
-	)
-	if err != nil {
-		log.Fatal(err)
-		return
-	}
-	claims, ok := tokenString.Claims.(*SignInDetails)
-
-	if !ok {
-		message = "token is expired"
-		return nil, message
-	}
-	if claims.ExpiresAt < time.Now().Local().Unix() {
-		message = "Token is expired please check"
-		return nil, message
-	}
-	fmt.Println(message)
-	return claims, message
-}
 
 func AuthMiddleware() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		cookie, _ := c.Cookie("token")
+		noAuthRoutePaths := []string{"/login", "/signup", "/forgotPassword"}
+		path := c.Request.URL.Path
+		fmt.Println("path: ", path)
+		for _, routePath := range noAuthRoutePaths {
+			if routePath == path {
+				c.Next()
+				return
+			}
+		}
 		fmt.Println("token: ", cookie)
-		if cookie == "" {
-			c.Redirect(http.StatusFound, "/login")
+		fmt.Println(cookie == "")
+		if cookie == "" && (path != "/signup" && path != "/login") {
+			utils.TemplateRenderer(c, 302, view.Base(view.PageNotfound("User not Loggedin:UnAuthorized"), false))
 			return
 		}
-		claims, err := validateToken(cookie)
-		if err != "" {
-			c.Redirect(http.StatusFound, "/login")
-
+		claims, err := utils.ValidateToken(cookie)
+		if err != "" && (path != "/signup" && path != "/login") {
+			utils.TemplateRenderer(c, 302, view.Base(view.PageNotfound("Something went wrong on the server side, Please Reload"), false))
+			c.JSON(http.StatusBadRequest, "Bearer token not found")
 			return
 		}
 		c.Set("email", claims.Email)
 		c.Set("uid", claims.Uid)
 		c.Set("username", claims.Username)
 		c.Set("isLoggedIn", true)
-		c.Redirect(http.StatusFound, "/")
+
+		if path == "/" {
+			c.Redirect(http.StatusFound, "/")
+		}
+
 		c.Next()
 	}
 }

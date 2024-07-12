@@ -1,13 +1,17 @@
 package main
 
 import (
+	"fmt"
 	"log"
 	"os"
 	"sync"
 
 	"github.com/Praveenkusuluri08/api/routes"
 	dbconfig "github.com/Praveenkusuluri08/dbConfig"
+	"github.com/Praveenkusuluri08/middleware"
 	"github.com/Praveenkusuluri08/store"
+	"github.com/Praveenkusuluri08/utils"
+	"github.com/Praveenkusuluri08/view"
 	"github.com/gin-gonic/gin"
 	"github.com/joho/godotenv"
 )
@@ -37,13 +41,15 @@ func main() {
 		wg.Done()
 	}()
 
-	// r.Use(middleware.AuthMiddleware())
-	// r.GET("/home", func(c *gin.Context) {
-	// 	isLoggedIn := c.GetBool("isLoggedIn")
-	// 	if isLoggedIn {
-	// 		utils.TemplateRenderer(c, 200, views.Base(views.Home(), isLoggedIn))
-	// 	}
-	// })
+	r.Use(middleware.AuthMiddleware())
+	r.GET("/", func(c *gin.Context) {
+		isLoggedIn := c.GetBool("isLoggedIn")
+		fmt.Println("isLoggedIn", isLoggedIn)
+
+		if isLoggedIn {
+			utils.TemplateRenderer(c, 200, view.Base(view.Home(), isLoggedIn))
+		}
+	})
 
 	log.Printf("Starting server on port %s", port)
 	if err := r.Run(":" + port); err != nil {
