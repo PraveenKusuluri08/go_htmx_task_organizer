@@ -1,23 +1,38 @@
 package dbconfig
 
 import (
+	"database/sql"
 	"fmt"
+	"log"
 	"os"
 
-	"github.com/Praveenkusuluri08/models"
-	"gorm.io/driver/postgres"
-	"gorm.io/gorm"
+	_ "github.com/lib/pq"
 )
 
-var DB *gorm.DB
+var DB *sql.DB
+
+var (
+	host     = os.Getenv("DB_HOST")
+	port     = os.Getenv("DB_PORT")
+	user     = os.Getenv("DB_USER")
+	password = os.Getenv("DB_PASSWORD")
+	dbname   = os.Getenv("DB_NAME")
+)
 
 func DBConnect() {
-	dsn := os.Getenv("DB_URL")
-	db, err := gorm.Open(postgres.Open(dsn), &gorm.Config{})
+
+	psqlInfo := fmt.Sprintf("host=%s port=%d user=%s password=%s dbname=%s sslmode=%s",
+		"localhost", 5432, "praveenkusuluri", "Praveen@1234", "htmx", "disable")
+	var err error
+	DB, err = sql.Open("postgres", psqlInfo)
 	if err != nil {
-		panic("failed to connect to database")
+		log.Fatalf("failed to connect to database: %v", err)
 	}
-	fmt.Println("Connection Opened to Database")
-	DB = db
-	db.AutoMigrate(&models.User{})
+
+	err = DB.Ping()
+	if err != nil {
+		log.Fatalf("failed to ping database: %v", err)
+	}
+
+	fmt.Println("Connection opened to database")
 }
