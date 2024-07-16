@@ -15,31 +15,44 @@ func AuthMiddleware() gin.HandlerFunc {
 		noAuthRoutePaths := []string{"/login", "/signup", "/forgotPassword"}
 		path := c.Request.URL.Path
 		fmt.Println("path: ", path)
+
+		// Allow unauthenticated access to noAuthRoutePaths
 		for _, routePath := range noAuthRoutePaths {
 			if routePath == path {
 				c.Next()
 				return
 			}
 		}
+
 		fmt.Println("token: ", cookie)
 		fmt.Println(cookie == "")
-		if cookie == "" && (path != "/signup" && path != "/login") {
-			utils.TemplateRenderer(c, 302, view.Base(view.PageNotfound("User not Loggedin:UnAuthorized"), false))
-			return
-		}
-		claims, err := utils.ValidateToken(cookie)
-		if err != "" && (path != "/signup" && path != "/login") {
-			utils.TemplateRenderer(c, 302, view.Base(view.PageNotfound("Something went wrong on the server side, Please Reload"), false))
-			c.JSON(http.StatusBadRequest, "Bearer token not found")
-			return
-		}
-		c.Set("email", claims.Email)
-		c.Set("uid", claims.Uid)
-		c.Set("username", claims.Username)
-		c.Set("isLoggedIn", true)
 
-		if path == "/" {
-			c.Redirect(http.StatusFound, "/")
+		// If the user is not authenticated, redirect to login or show an error
+		if cookie == "" {
+			if path != "/login" && path != "/signup" {
+				utils.TemplateRenderer(c, 302, view.Base(view.PageNotfound("User not Logged in: Unauthorized"), false))
+				c.Abort()
+				return
+			}
+		} else {
+			claims, err := utils.ValidateToken(cookie)
+			if err != "" {
+				utils.TemplateRenderer(c, 302, view.Base(view.PageNotfound("Something went wrong on the server side, Please Reload"), false))
+				c.JSON(http.StatusBadRequest, "Bearer token not found")
+				c.Abort()
+				return
+			}
+
+			c.Set("email", claims.Email)
+			c.Set("uid", claims.Uid)
+			c.Set("isLoggedIn", true)
+
+			if path == "/login" || path == "/signup" {
+				c.Header("HX-Redirect", "/")
+				c.Status(http.StatusOK)
+				c.Abort()
+				return
+			}
 		}
 
 		c.Next()

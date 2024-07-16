@@ -21,6 +21,7 @@ func init() {
 	if err != nil {
 		log.Printf("Error loading .env file: %v", err)
 	}
+	dbconfig.DBConnect()
 }
 
 var wg = sync.WaitGroup{}
@@ -35,11 +36,15 @@ func main() {
 	routes.UserRoutes(r)
 	r.Use(gin.Logger())
 
-	wg.Add(1)
-	go func() {
-		store.CreateTables()
-		wg.Done()
-	}()
+	// wg.Add(1)
+	// go func() {
+	err := store.CreateTables()
+	if err != nil {
+		log.Fatalf("Failed to create tables: %v", err)
+	}
+	log.Println("Tables created successfully.")
+	// 	wg.Done()
+	// }()
 
 	r.Use(middleware.AuthMiddleware())
 	r.GET("/", func(c *gin.Context) {

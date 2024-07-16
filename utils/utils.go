@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"log"
 	"os"
-	"reflect"
+	"regexp"
 	"time"
 
 	"github.com/Praveenkusuluri08/models"
@@ -18,9 +18,8 @@ import (
 var Secret_Key = os.Getenv("SECRET_KEY")
 
 type SignInDetails struct {
-	Email    string
-	Uid      string
-	Username string
+	Email string
+	Uid   string
 	jwt.StandardClaims
 }
 
@@ -58,9 +57,8 @@ func ValidateToken(token string) (claims *SignInDetails, msg string) {
 
 func GenerateToken(user models.User) (string, error) {
 	claims := &SignInDetails{
-		Email:    user.Email,
-		Uid:      user.ID,
-		Username: user.Username,
+		Email: user.Email,
+		Uid:   user.ID,
 		StandardClaims: jwt.StandardClaims{
 			ExpiresAt: time.Now().Local().Add(time.Hour * time.Duration(24)).Unix(),
 		},
@@ -74,9 +72,19 @@ func GenerateToken(user models.User) (string, error) {
 	return token, err
 }
 
-func HashPassword(password string) string {
-	hash, _ := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
-	return reflect.ValueOf(hash).String()
+func HashPassword(password string) (string, error) {
+	hashBytes, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
+	if err != nil {
+		return "", err
+	}
+	hashedPassword := string(hashBytes)
+	return hashedPassword, nil
+}
+
+func ValidateEmail(email string) bool {
+	const emailRegex = `^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$`
+	re := regexp.MustCompile(emailRegex)
+	return re.MatchString(email)
 }
 
 func CompareHashAndPassword(hash string, password string) (string, bool) {
