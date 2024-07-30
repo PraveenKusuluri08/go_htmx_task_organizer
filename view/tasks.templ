@@ -1,0 +1,31 @@
+package view
+
+import (
+    "github.com/Praveenkusuluri08/models"
+)
+
+templ Tasks(tasks []models.Tasks){
+    for _,value := range tasks{
+        <div id="tasks" class="pt-5">
+            <div class="flex justify-between items-center bg-gray-100 p-6 mb-4 rounded-md relative">
+                <div class="flex flex-col">
+                    <div class="mb-2">
+                        <h2 class="text-xl font-bold">{value.Title}</h2>
+                        <p class="text-sm">{value.Description}</p>
+                    </div>
+                    <div class="flex items-center space-x-4">
+                        <span class="text-sm">{value.DueDate}</span>
+                        <span class="text-sm">{value.Priority}</span>
+                    </div>
+                </div>
+                <label for="completedCheckbox">Complete</label>
+                <input type="checkbox" id="completedCheckbox" class="absolute top-2 right-2">
+                <button class="absolute bottom-2 right-2 bg-red-500 text-white px-2 py-1 rounded-md">
+                    Delete
+                </button>
+            </div>
+        </div>
+        
+  }
+
+}

@@ -39,10 +39,10 @@ func CreateTables() error {
 	    title TEXT,
 	    description TEXT,
 	    user_id TEXT,
-	    priority BOOLEAN,
+	    priority TEXT,
 	    due_date TEXT,
 	    completed BOOLEAN DEFAULT FALSE,
-	    completed_at TIMESTAMP,
+	    completed_at TEXT,
 	    created_at TIMESTAMP DEFAULT NOW(),
 	    FOREIGN KEY (user_id) REFERENCES users(id)
 	)
@@ -110,4 +110,60 @@ func GetUserByUsername(email string) (user *models.User, err error) {
 	}
 	fmt.Println(*user)
 	return user, nil
+}
+
+func CreateTask(task *models.Tasks) (string, error) {
+	if task == nil {
+		return "", errors.New("task cannot be nil")
+	}
+
+	log.Printf("Creating task: %+v", *task)
+
+	task.ID = utils.GenerateUUID()
+	task.CompletedAt = ""
+
+	log.Printf("Task after processing: %+v", *task)
+
+	insertQuery := "INSERT INTO tasks (id, title, description, user_id, priority, due_date, completed, completed_at) VALUES ($1, $2, $3, $4, $5, $6, $7, $8)"
+	result, err := dbconfig.DB.Exec(insertQuery, task.ID, task.Title, task.Description, task.UserID, task.Priority, task.DueDate, false, task.CompletedAt)
+	if err != nil {
+		return "", fmt.Errorf("error executing query: %v", err)
+	}
+
+	rowsAffected, err := result.RowsAffected()
+	if err != nil {
+		return "", fmt.Errorf("error getting rows affected: %v", err)
+	}
+	if rowsAffected == 0 {
+		return "", errors.New("no rows were inserted")
+	}
+	return fmt.Sprintf("Task %s created successfully", task.Title), nil
+}
+
+func GetTasks(uid string) ([]*models.Tasks, error) {
+	fmt.Println("The uid is", uid)
+	tasks := []*models.Tasks{}
+	query := "SELECT id, title, description, user_id, priority, due_date, completed, completed_at, created_at FROM tasks WHERE user_id = $1"
+	rows, err := dbconfig.DB.Query(query, uid)
+	if err != nil {
+		log.Println(err)
+		return nil, err
+	}
+	defer rows.Close()
+	for rows.Next() {
+		task := &models.Tasks{}
+		err := rows.Scan(&task.ID, &task.Title, &task.Description, &task.UserID, &task.Priority, &task.DueDate, &task.Completed, &task.CompletedAt, &task.CreatedAt)
+		if err != nil {
+			log.Println(err)
+			return nil, err
+		}
+		tasks = append(tasks, task)
+	}
+	if err := rows.Err(); err != nil {
+		log.Println(err)
+		return nil, err
+	}
+	// Print the tasks in a human-readable format
+	fmt.Printf("Tasks: %+v\n", tasks)
+	return tasks, nil
 }
