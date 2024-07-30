@@ -1,11 +1,65 @@
 package view
 
 templ Home(){
-     <div class="container mx-auto p-4">
-           <h1 class="text-2xl font-semibold">HTMX TODO</h1>
-            <div class="mt-4">
-                     <input type="text" class="border border-gray-200 p-2 w-full" placeholder="Add a new task" />
-                     <button class="bg-blue-500 text-white p-2 mt-2">Add</button>
-                 </div>
-             </div>
+    <body>
+    <h1 class="text-2xl font-bold mb-4">Task Manager</h1>
+    
+    <!-- Task Form -->
+    <form hx-post="/create" hx-boost="true" hx-on="htmx:afterOnLoad: resetButtonText" hx-trigger="submit" hx-target="#add_task" id="taskForm" class="space-y-4">
+        <div class="flex space-x-4">
+            <div class="w-1/2">
+                <label for="title" class="block text-sm font-medium text-gray-700">Title</label>
+                <input type="text" id="title" name="title" class="mt-1 block w-full p-2 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500" required>
+            </div>
+            <div class="w-1/2">
+                <label for="description" class="block text-sm font-medium text-gray-700">Description</label>
+                <textarea id="description" name="description" rows="1" class="mt-1 block w-full p-2 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500" required></textarea>
+            </div>
+        </div>
+
+        <div class="flex space-x-4 items-center">
+           <div class="w-1/2">
+                <label for="priority" class="block text-sm font-medium text-gray-700">Priority</label>
+                <input type="hidden" id="priority" name="priority" value="">
+                <div class="mt-1 flex space-x-2">
+                    <button type="button" class="priority-chip bg-yellow-500 text-white px-3 py-1 rounded-md" data-priority="Important">Important</button>
+                    <button type="button" class="priority-chip bg-green-500 text-white px-3 py-1 rounded-md" data-priority="Less Important">Less Important</button>
+                    <button type="button" class="priority-chip bg-red-500 text-white px-3 py-1 rounded-md" data-priority="Super Important">Super Important</button>
+                </div>
+            </div>
+            <div class="w-1/2">
+                <label for="due-date" class="block text-sm font-medium text-gray-700">Due Date</label>
+                <input type="date" id="due_date" name="due_date" class="mt-1 block w-full p-2 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500" required>
+            </div>
+        </div>
+        <button id="add_task" type="submit" hx-boost="true" class="w-full bg-blue-500 text-white py-2 rounded-md">Add Task</button>
+    </form>
+
+    <div hx-get="/tasks" hx-boost="true" hx-trigger="load">
+        Hello
+    </div>
+
+</body>
+<script>
+   document.addEventListener('DOMContentLoaded', function() {
+    const chips = document.querySelectorAll('.priority-chip');
+    const priorityInput = document.getElementById('priority');
+
+    chips.forEach(chip => {
+        chip.addEventListener('click', function() {
+            // Remove selection from all chips
+            chips.forEach(c => c.classList.remove('ring', 'ring-offset-2', 'ring-yellow-600', 'ring-opacity-50'));
+            // Add selection to the clicked chip
+            chip.classList.add('ring', 'ring-offset-2', 'ring-yellow-600', 'ring-opacity-50');
+            // Update the hidden input value
+            priorityInput.value = chip.dataset.priority;
+            console.log("Selected priority:", chip.dataset.priority); 
+            console.log("Input value set to:", priorityInput.value);
+        });
+    });
+});
+ function resetButtonText(event) {
+            document.getElementById('add_task').textContent = 'Add Task';
+        }
+</script>
 }

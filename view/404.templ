@@ -4,6 +4,7 @@ templ PageNotfound(message string){
     // <div>
     //     <p class="text-xl font-semibold tracking-normal line-clamp-3">Sorry for this page, The actual reason you are seeing this page is {message} <span class="font-bold text-blue-500 text-pretty leading-snug">Login</span> or <span class="font-bold text-blue-500 text-pretty leading-snug">Signup</span> to access this page</p>
     // </div>
+    <body>
     <div class="text-center">
         <img src="https://static.vecteezy.com/system/resources/previews/022/756/256/original/delivery-guy-taking-break-bw-empty-state-illustration-editable-404-not-found-page-for-ux-ui-design-isolated-flat-monochromatic-character-on-white-error-flash-message-for-website-app-vector.jpg" alt="404 Not Found Image" class="mx-auto mb-8 w-1/2 h-auto transition-all filter grayscale hover:grayscale-0 rounded-lg hover:shadow-xl dark:shadow-gray-800 bg-cover bg-fixed">
         <p class="text-2xl font-semibold text-gray-700 mb-4">Oops! The page you are looking for cannot be found.</p>
@@ -11,4 +12,5 @@ templ PageNotfound(message string){
             Please <a href="/login" class="hover:underline" hx-boost="true">Login</a> or <a href="/signup" class="hover:underline" hx-boost="true">Signup</a> to access this page.
         </p>
     </div>
+    </body>
 }

@@ -23,7 +23,6 @@ func AuthMiddleware() gin.HandlerFunc {
 				return
 			}
 		}
-
 		fmt.Println("token: ", cookie)
 		fmt.Println(cookie == "")
 
@@ -54,7 +53,27 @@ func AuthMiddleware() gin.HandlerFunc {
 				return
 			}
 		}
-
+		c.Next()
+	}
+}
+func AuthMiddleware1() gin.HandlerFunc {
+	return func(c *gin.Context) {
+		cookie, _ := c.Cookie("token")
+		fmt.Println("Token: ", cookie)
+		if cookie == "" {
+			utils.TemplateRenderer(c, 302, view.Base(view.PageNotfound("User not Logged in: Unauthorized"), false))
+			c.Abort()
+		}
+		claims, err := utils.ValidateToken(cookie)
+		if err != "" {
+			utils.TemplateRenderer(c, 302, view.Base(view.PageNotfound("Something went wrong on the server side, Please Reload"), false))
+			c.JSON(http.StatusBadRequest, "COOKIE not found")
+			c.Abort()
+		}
+		fmt.Println("Login User: ", claims.Uid)
+		c.Set("email", claims.Email)
+		c.Set("isLoggedIn", true)
+		c.Set("uid", claims.Uid)
 		c.Next()
 	}
 }
